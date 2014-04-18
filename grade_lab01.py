@@ -91,6 +91,7 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     loader = unittest.TestLoader()
     loader.testMethodPrefix = prefix
 
+    print("*** run test params " + testFile1 + ", " + testFile2 + ", " + outfile)
     # open the outfile as the destination of the output
     f = open(outfile, "w")
 
@@ -105,16 +106,29 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
 def countTestFailures(filename):
     '''
     Given a file with pyUnit test output, look at the last line to 
-    see if the tests passed. 
-    If they passed, return 0. Otherwise, return -1
+    see if the tests passed, and look and make sure the student added
+    enough of their own tests.
+    If they passed the tests and had the proper amount, return 0. 
+    If the tests failed, return -1
+    If they did not have enough tests, return -2
     '''
     f = open(filename, 'r')
     lines = f.readlines()
     lastLine = lines[-1]
+    thirdLastLine = lines[-3]
+    numtests = thirdLastLine.split()[1]
     f.close()
 
+    if int(numtests) >= 8:
+        if "FAIL" in lastLine:
+            return -1
+        else: 
+            return 0
+    else:
+        return -2
+
     # python ternary operator - woohoo!
-    return -1 if "FAIL" in lastLine else 0
+    # return -1 if "FAIL" in lastLine else 0
 
 def appendHeadText(filename):
     '''
@@ -149,12 +163,12 @@ def printHeadText(student):
     print( subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True).decode("utf-8") )
 
     # sleep, to allow myself to record if the student didn't include their name
-    time.sleep(1)
+    time.sleep(3)
 
     print("\n-----------------------------------------------\n")
     print("beginning of %s:\n" % labTestsNm)
     print( subprocess.check_output('head -n 5 ' + labTestsNm, shell=True).decode("utf-8") )
-    time.sleep(4)
+    time.sleep(3)
 
 
 if __name__ == "__main__":
@@ -168,7 +182,8 @@ if __name__ == "__main__":
 
         sc.write("passed the unit tests: 0\n")
         sc.write("failed some unit test: -1\n")
-        sc.write("failed to find lab01Funcs.py or lab01Tests.py: -2\n\n")
+        sc.write("failed to add enough new tests: -2\n")
+        sc.write("failed to find lab01Funcs.py or lab01Tests.py: -3\n\n")
 
         # make a directory for pyUnit output files (using os.path.exists and os.makedirs)
         if not path.exists(testOutputDir):
@@ -186,7 +201,7 @@ if __name__ == "__main__":
 
         # run the tests on all students
         for stud in allStudents:
-            status = -2
+            status = -3
 
             # create an output file for the current student
             resultFilePath = testOutputDir + "/" + stud +"_output.txt"
@@ -196,12 +211,12 @@ if __name__ == "__main__":
             # If the student had files stored in their current dir,
             # then run the tests.
             # If copyfiles returned false, then the student gets a
-            # '-2' written to the scores file as a flag that we must  
+            # '-3' written to the scores file as a flag that we must  
             # manually check their submission.
             if copyFiles(stud):
 
                 # Change the parameters to runTestsWithPrefix as needed
-                runTestsWithPrefix(labTestsNm,graderTests,"test", resultFilePath)
+                runTestsWithPrefix(labTestsNm,graderTests,"test_milesToKm", resultFilePath)
 
                 # count failures and store in status
                 status = countTestFailures(resultFilePath)
