@@ -1,22 +1,23 @@
+#!/usr/bin/python
 # grading script for CS8 lab01, Spring 2014
 
 from glob import glob
 from shutil import copyfile
+from os import *
 from os import remove
-from os.path import isfile
 import sys, subprocess, time
 import imp
 import unittest
 
 ### Some global variable definitions ### 
-logFile = 'logfile.txt'
 labFiles = {}           # dictionary of student names as key and list of file names as value
                         # i.e. {'John Snow': ['fileone.py', 'filetwo.py']}
-labDir = sys.argv[1]    # get the name of the lab as an argument, i.e. "lab01"
-labFuncsNm = labDir + "Funcs.py"
-labTestsNm = labDir + "Tests.py"
 graderTests = "KyleTests.py"
-testOutputDir = labDir + "TestOutput/"
+if len(sys.argv) == 2:
+    labDir = sys.argv[1]    # get the name of the lab as an argument, i.e. "lab01"
+    labFuncsNm = labDir + "Funcs.py"
+    labTestsNm = labDir + "Tests.py"
+    testOutputDir = labDir + "TestOutput"
 
 def findLabFiles():
     ''' 
@@ -26,7 +27,9 @@ def findLabFiles():
     # glob returns all pathnames matching the specified pattern
     tmpStudents = glob("%s/*"%(labDir))
     students = []
-    for student in tmpStudents:
+    for paths in tmpStudents:
+        tmp = paths.split('/')
+        student = tmp[1]
         # do some sanity checks
         if student[0] != '_' and '.' not in student:
             # add the directories with student names into a list
@@ -40,8 +43,8 @@ def findLabFiles():
 
         #check if the student turned in the files in a lab directory
         fileList = []
-        funcsFile=glob("%s/%s/%s"%(student, labDir, labFuncsNm))
-        testsFile=glob("%s/%s/%s"%(student, labDir, labTestsNm))
+        funcsFile=glob("%s/%s/%s/%s"%(labDir,student, labDir, labFuncsNm))
+        testsFile=glob("%s/%s/%s/%s"%(labDir,student, labDir, labTestsNm))
 
         # if both files do NOT exist in the directory
         if len(funcsFile) == 0 or len(testsFile) == 0:
@@ -49,7 +52,7 @@ def findLabFiles():
             labFiles[student] = fileList
         # else, if both files DO exist in the directory 
         elif len(funcsFile) != 0 and len(testsFile) != 0:
-            fileList += [funcsFile, testsFile]
+            fileList += funcsFile + testsFile
             labFiles[student] = fileList
         # else, if one of the two is not there (this is a problem)
         else:
@@ -60,9 +63,9 @@ def cleanFiles():
     '''
     Cleans the lab files if any exist in the current directory 
     '''
-    if isfile(labFuncsNm):
+    if path.isfile(labFuncsNm):
         remove(labFuncsNm)
-    if isfile(labTestsNm):
+    if path.isfile(labTestsNm):
         remove(labTestsNm)
 
 def copyFiles(student):
@@ -88,10 +91,14 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     loader = unittest.TestLoader()
     loader.testMethodPrefix = prefix
 
-    # open the logfile as the destination of the output
+    # open the outfile as the destination of the output
     f = open(outfile, "w")
+
+    # add all the unit tests into the TestSuite object
     suite = loader.discover('.', pattern = testFile1) 
     suite.addTest( loader.discover('.', pattern = testFile2) )
+
+    # pass the file as the stream location for output
     unittest.TextTestRunner(stream=f,verbosity=2).run(suite)
     f.close()
 
@@ -116,15 +123,16 @@ def appendHeadText(filename):
     '''
     f = open(filename, 'w')
     f.write("\n############################################\n")
-    f.write("beginning of %s:\n", labFuncsNm)
+    f.write("beginning of %s:\n"%labFuncsNm)
 
     # call the head command, convert it to a string, and write it to the file
-    f.write( str(subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True)) )
+    # needs the decode() because of python2/python3 weirdness with byte arrays and strings
+    f.write( subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True).decode("utf-8") )
 
     f.write("\n############################################\n")
-    f.write("beginning of %s:\n", labTestsNm)
+    f.write("beginning of %s:\n"%labTestsNm)
 
-    f.write( str(subprocess.check_output('head -n 5 ' + labTestsNm, shell=True)) )
+    f.write( subprocess.check_output('head -n 5 ' + labTestsNm, shell=True).decode("utf-8") )
     f.close()
 
 def printHeadText(student):
@@ -134,70 +142,75 @@ def printHeadText(student):
     '''
     print("\n-----------------------------------------------\n")
     print("These files belong to " + student + "\n")
-    print("beginning of %s:\n", labFuncsNm)
+    print("beginning of %s:\n" % labFuncsNm)
 
     # call the head command, convert it to a string
-    print( str(subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True)) )
+    # needs the decode() because of python2/python3 weirdness with byte arrays and strings
+    print( subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True).decode("utf-8") )
 
     # sleep, to allow myself to record if the student didn't include their name
-    time.sleep(5)
+    time.sleep(1)
 
     print("\n-----------------------------------------------\n")
-    print("beginning of %s:\n", labTestsNm)
-    print( str(subprocess.check_output('head -n 5 ' + labTestsNm, shell=True)) )
-    time.sleep(5)
+    print("beginning of %s:\n" % labTestsNm)
+    print( subprocess.check_output('head -n 5 ' + labTestsNm, shell=True).decode("utf-8") )
+    time.sleep(4)
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 grade_lab01.py <directory of stuff to grade>\n")
+    else:
+        findLabFiles()
+        allStudents = list(labFiles.keys())
+        allStudents.sort()
+        sc = open("scores.txt", "w")
 
-    findLabFiles()
-    allStudents = list(labFiles.keys())
-    allStudents.sort()
-    sc = open(labDir + "scores.txt", "w")
+        sc.write("passed the unit tests: 0\n")
+        sc.write("failed some unit test: -1\n")
+        sc.write("failed to find lab01Funcs.py or lab01Tests.py: -2\n\n")
 
-    sc.write("passed the unit tests: 0\n")
-    sc.write("failed some unit test: -1\n")
-    sc.write("failed to find lab01Funcs.py or lab01Tests.py: -2\n\n")
+        # make a directory for pyUnit output files (using os.path.exists and os.makedirs)
+        if not path.exists(testOutputDir):
+            makedirs(testOutputDir)
 
-    # make a directory for pyUnit output files
-    if not os.path.exists(testOutputDir)
-        os.makedirs(testOutputDir)
+        # basically use the 'touch' command to create files with thse names
+        f1 = open(labFuncsNm, "w")
+        f2 = open(labTestsNm, "w")
+        f1.close()
+        f2.close()
+        import lab01Tests
 
-    # basically use the 'touch' command to create files with thse names
-    f1 = open(labFuncsNm, "w")
-    f2 = open(labTestsNm, "w")
-    f1.close()
-    f2.close()
-    import lab01Tests
-
-    # clean out the current directory to prepare for testing
-    cleanFiles()
-
-    # run the tests on all students
-    for stud in allStudents:
-        status = -2
-
-        # create an output file for the current student
-        resultFilePath = testOutputDir + "/" + stud +"_output.txt"
-        
-        # If the student had files stored in their current dir,
-        # then run the tests.
-        # If copyfiles returned false, then the student gets a
-        # '-2' written to the scores file as a flag that we must  
-        # manually check their submission.
-        if copyFiles(stud):
-
-            # Change the parameters to runTestsWithPrefix as needed
-            runTestsWithPrefix(labTestsNm,graderTests,"test", resultFilePath)
-
-            # count failures and store in status
-            status = countTestFailures(resultFilePath)
-
-            # print 'head' output data to see if student wrote his/her name 
-            printHeadText(stud)
-
+        # clean out the current directory to prepare for testing
         cleanFiles()
-        sc.write("%s, %d\n" % (stud, status))   
 
-    sc.close()
-    print("*** Testing done ***")
+        # run the tests on all students
+        for stud in allStudents:
+            status = -2
+
+            # create an output file for the current student
+            resultFilePath = testOutputDir + "/" + stud +"_output.txt"
+            resultFile = open(resultFilePath,'w')
+            resultFile.close()
+            
+            # If the student had files stored in their current dir,
+            # then run the tests.
+            # If copyfiles returned false, then the student gets a
+            # '-2' written to the scores file as a flag that we must  
+            # manually check their submission.
+            if copyFiles(stud):
+
+                # Change the parameters to runTestsWithPrefix as needed
+                runTestsWithPrefix(labTestsNm,graderTests,"test", resultFilePath)
+
+                # count failures and store in status
+                status = countTestFailures(resultFilePath)
+
+                # print 'head' output data to see if student wrote his/her name 
+                printHeadText(stud)
+
+            cleanFiles()
+            sc.write("%s, %d\n" % (stud, status))   
+
+        sc.close()
+        print("*** Testing done ***")      
