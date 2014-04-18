@@ -1,0 +1,10 @@
+To extract labs for you to grade type:
+
+./grade_labs.py <your user name> <labxx you're grading>
+
+So for Jasen to extract lab00, he types:
+
+./grade_labs.py jasen lab00
+
+and then the script extracts all of the lab00 submissions into
+~/jasenWork/lab00/
