@@ -4,7 +4,7 @@ from glob import glob
 from shutil import copyfile
 from os import remove
 from os.path import isfile
-import sys, subprocess
+import sys, subprocess, time
 import imp
 import unittest
 
@@ -15,6 +15,7 @@ labFiles = {}           # dictionary of student names as key and list of file na
 labDir = sys.argv[1]    # get the name of the lab as an argument, i.e. "lab01"
 labFuncsNm = labDir + "Funcs.py"
 labTestsNm = labDir + "Tests.py"
+graderTests = "KyleTests.py"
 testOutputDir = labDir + "TestOutput/"
 
 def findLabFiles():
@@ -77,19 +78,20 @@ def copyFiles(student):
 
     return copiedFiles
 
-def runTestsWithPrefix(testFile,prefix,outfile):
+def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     """
-    run only tests from testFile with a certain prefix
-    Example: runTestsWithPrefix("lab03Tests.py","test_isPrimaryColor")
+    run tests from testFile1 and testFile2 with a certain prefix, then 
+    output the results into outfile.
 
-    see testHelper.py from CS8 lab03 as an example
+    see testHelper.py from CS8 lab03 as a basic example
     """
     loader = unittest.TestLoader()
     loader.testMethodPrefix = prefix
 
     # open the logfile as the destination of the output
     f = open(outfile, "w")
-    suite = loader.discover('.', pattern = testFile) 
+    suite = loader.discover('.', pattern = testFile1) 
+    suite.addTest( loader.discover('.', pattern = testFile2) )
     unittest.TextTestRunner(stream=f,verbosity=2).run(suite)
     f.close()
 
@@ -124,6 +126,26 @@ def appendHeadText(filename):
 
     f.write( str(subprocess.check_output('head -n 5 ' + labTestsNm, shell=True)) )
     f.close()
+
+def printHeadText(student):
+    '''
+    Print the first few lines of the labFuncsNm and labTestsNm files, respectively,
+    for the 'student' passed in
+    '''
+    print("\n-----------------------------------------------\n")
+    print("These files belong to " + student + "\n")
+    print("beginning of %s:\n", labFuncsNm)
+
+    # call the head command, convert it to a string
+    print( str(subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True)) )
+
+    # sleep, to allow myself to record if the student didn't include their name
+    time.sleep(5)
+
+    print("\n-----------------------------------------------\n")
+    print("beginning of %s:\n", labTestsNm)
+    print( str(subprocess.check_output('head -n 5 ' + labTestsNm, shell=True)) )
+    time.sleep(5)
 
 
 if __name__ == "__main__":
@@ -166,13 +188,13 @@ if __name__ == "__main__":
         if copyFiles(stud):
 
             # Change the parameters to runTestsWithPrefix as needed
-            runTestsWithPrefix(labTestsNm,"test_milesToKm", resultFilePath)
+            runTestsWithPrefix(labTestsNm,graderTests,"test", resultFilePath)
 
             # count failures and store in status
             status = countTestFailures(resultFilePath)
 
-            # append 'head' output data to see if student wrote his/her name 
-            appendHeadText(resultFilePath)
+            # print 'head' output data to see if student wrote his/her name 
+            printHeadText(stud)
 
         cleanFiles()
         sc.write("%s, %d\n" % (stud, status))   
