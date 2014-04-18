@@ -4,7 +4,7 @@ from glob import glob
 from shutil import copyfile
 from os import remove
 from os.path import isfile
-import sys
+import sys, subprocess
 import imp
 import unittest
 
@@ -15,6 +15,7 @@ labFiles = {}           # dictionary of student names as key and list of file na
 labDir = sys.argv[1]    # get the name of the lab as an argument, i.e. "lab01"
 labFuncsNm = labDir + "Funcs.py"
 labTestsNm = labDir + "Tests.py"
+testOutputDir = labDir + "TestOutput/"
 
 def findLabFiles():
     ''' 
@@ -101,21 +102,44 @@ def countTestFailures(filename):
     f = open(filename, 'r')
     lines = f.readlines()
     lastLine = lines[-1]
+    f.close()
 
     # python ternary operator - woohoo!
     return -1 if "FAIL" in lastLine else 0
+
+def appendHeadText(filename):
+    '''
+    Append the first few lines of the labFuncsNm and labTestsNm files, respectively,
+    to the file given in the 'filename' parameter
+    '''
+    f = open(filename, 'w')
+    f.write("\n############################################\n")
+    f.write("beginning of %s:\n", labFuncsNm)
+
+    # call the head command, convert it to a string, and write it to the file
+    f.write( str(subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True)) )
+
+    f.write("\n############################################\n")
+    f.write("beginning of %s:\n", labTestsNm)
+
+    f.write( str(subprocess.check_output('head -n 5 ' + labTestsNm, shell=True)) )
+    f.close()
+
 
 if __name__ == "__main__":
 
     findLabFiles()
     allStudents = list(labFiles.keys())
     allStudents.sort()
-    sc = open("scores.txt", "w")
+    sc = open(labDir + "scores.txt", "w")
 
+    sc.write("passed the unit tests: 0\n")
     sc.write("failed some unit test: -1\n")
     sc.write("failed to find lab01Funcs.py or lab01Tests.py: -2\n\n")
 
-    # TODO - make a directory for pyUnit output files
+    # make a directory for pyUnit output files
+    if not os.path.exists(testOutputDir)
+        os.makedirs(testOutputDir)
 
     # basically use the 'touch' command to create files with thse names
     f1 = open(labFuncsNm, "w")
@@ -124,13 +148,16 @@ if __name__ == "__main__":
     f2.close()
     import lab01Tests
 
+    # clean out the current directory to prepare for testing
+    cleanFiles()
+
+    # run the tests on all students
     for stud in allStudents:
-        results = -2
+        status = -2
 
-        # TODO - create an output file for the current student
-
+        # create an output file for the current student
+        resultFilePath = testOutputDir + "/" + stud +"_output.txt"
         
-
         # If the student had files stored in their current dir,
         # then run the tests.
         # If copyfiles returned false, then the student gets a
@@ -138,12 +165,17 @@ if __name__ == "__main__":
         # manually check their submission.
         if copyFiles(stud):
 
-            # TODO - run unit tests and output to specific student file in the special directory
-            # TODO - count failures and store in results
-            results = countTestFailures()
+            # Change the parameters to runTestsWithPrefix as needed
+            runTestsWithPrefix(labTestsNm,"test_milesToKm", resultFilePath)
+
+            # count failures and store in status
+            status = countTestFailures(resultFilePath)
+
+            # append 'head' output data to see if student wrote his/her name 
+            appendHeadText(resultFilePath)
 
         cleanFiles()
-        sc.write("%s, %d\n" % (stud, results))
+        sc.write("%s, %d\n" % (stud, status))   
 
-    # Change the parameters to runTestsWithPrefix as needed
-    runTestsWithPrefix("lab01Tests.py","test_milesToKm")
+    sc.close()
+    print("*** Testing done ***")
