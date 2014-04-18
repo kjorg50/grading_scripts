@@ -1,19 +1,21 @@
-# grading script for CS8 lab01, Spring 2014
-
 from glob import glob
 from shutil import copyfile
 from os import remove
 from os.path import isfile
+import sys
 import imp
 import math
 
+### Some global variables ### 
 labFiles = {}			# dictionary of student names as keys and file names as values
-labDir = "lab01"
+labDir = sys.argv[1]	# get the name of the lab as an argument, i.e. "lab01"
 labFileNm = "someFunctions.py"
 testData = [ (1, 1.60934), (2, 3.21869), (3, 4.82803), \
 (-3, -4.82803) ]
 
 def findLabFiles():
+	''' iterates through the student name directories and copies the data into a dict '''
+
 	# glob returns all pathnames matching the specified pattern
 	tmpStudents = glob("%s/*"%(labDir))
 	students = []
@@ -56,9 +58,11 @@ def cleanFiles():
 	if isfile(labFileNm):
 		remove(labFileNm)
 
-# Returns the number of tests passed. If there is an error running 
-# the tests, return -1
-def testLab00(student):
+def testLab(student):
+	'''
+	Runs the tests for the current lab. Returns the number of tests passed. 
+	If there is an error running the tests, return -1
+	'''
 	passed = 0
 
 
@@ -109,7 +113,7 @@ if __name__ == "__main__":
 		# '-2' written to the scores file as a flag that we must  
 		# manually check their submission.
 		if copyFiles(stud):
-			results = testLab00(stud)
+			results = testLab(stud)
 
 		cleanFiles()
 		sc.write("%s, %d\n" % (stud, results))
