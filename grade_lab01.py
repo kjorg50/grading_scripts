@@ -45,6 +45,9 @@ def findLabFiles():
         labFiles[student] = {}
 
         #check if the student turned in the files in a lab directory
+        # for example in the class account you are looking for 
+        #     labXX/Student_Name/labXX/labXXFuncs.py
+        #     labXX/Student_Name/labXX/labXXTests.py
         fileList = []
         funcsFile=glob("%s/%s/%s/%s"%(labDir,student, labDir, labFuncsNm))
         testsFile=glob("%s/%s/%s/%s"%(labDir,student, labDir, labTestsNm))
@@ -94,7 +97,7 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     loader = unittest.TestLoader()
     loader.testMethodPrefix = prefix
 
-    print("*** run test params " + testFile1 + ", " + testFile2 + ", " + outfile)
+    #print("*** run test params " + testFile1 + ", " + testFile2 + ", " + outfile)
     # open the outfile as the destination of the output
     f = open(outfile, "w")
 
@@ -210,10 +213,10 @@ if __name__ == "__main__":
         # clean out the current directory to prepare for testing
         cleanFiles()
 
-        nextCmd = 'y'
+        nextCmd = 'l' # I'm lazy and wanted a letter that was close to the enter button
         # run the tests on all students
         for stud in allStudents:
-            if nextCmd=='y':
+            if nextCmd=='l':
                 status = -3
 
                 # create an output file for the current student
@@ -239,7 +242,7 @@ if __name__ == "__main__":
 
                 cleanFiles()
                 sc.write("%s, %d\n" % (stud, status)) 
-                nextCmd = input('Continue to next student? (y/n)')
+                nextCmd = input('Continue to next student? press "l" for yes, anything else for no')
             else:
                 print("Goodbye, the student you left off at was %s\n" % stud)
 
