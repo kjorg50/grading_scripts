@@ -131,9 +131,12 @@ def countTestFailures(filename):
     '''
     f = open(filename, 'r')
     lines = f.readlines()
-    lastLine = lines[-1]
-    thirdLastLine = lines[-3]
-    numtests = thirdLastLine.split()[1]
+    if len(lines) > 0:
+        lastLine = lines[-1]
+        thirdLastLine = lines[-3]
+        numtests = thirdLastLine.split()[1]
+    else:
+        return -1
     f.close()
 
     if int(numtests) >= 8:
