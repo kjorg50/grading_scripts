@@ -3,8 +3,11 @@
 
 from glob import glob
 from shutil import copyfile
-from os import *
+#from os import *
 from os import remove
+from os import path
+from os.path import isfile
+from os import makedirs
 import sys, subprocess, time
 import imp
 import unittest
@@ -95,9 +98,20 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     # open the outfile as the destination of the output
     f = open(outfile, "w")
 
+    # reload the modules 
+    if isfile(testFile1) and isfile(testFile2):
+        try:
+            imp.reload(lab01Funcs)
+            imp.reload(lab01Tests)
+        except Exception as inst:
+            print(inst)
+            return -1
+
     # add all the unit tests into the TestSuite object
     suite = loader.discover('.', pattern = testFile1) 
+    print("Cases %d" % (suite.countTestCases()))
     suite.addTest( loader.discover('.', pattern = testFile2) )
+    print("Cases %d" % (suite.countTestCases()))
 
     # pass the file as the stream location for output
     unittest.TextTestRunner(stream=f,verbosity=2).run(suite)
@@ -162,13 +176,9 @@ def printHeadText(student):
     # needs the decode() because of python2/python3 weirdness with byte arrays and strings
     print( subprocess.check_output('head -n 5 ' + labFuncsNm, shell=True).decode("utf-8") )
 
-    # sleep, to allow myself to record if the student didn't include their name
-    time.sleep(3)
-
     print("\n-----------------------------------------------\n")
     print("beginning of %s:\n" % labTestsNm)
     print( subprocess.check_output('head -n 5 ' + labTestsNm, shell=True).decode("utf-8") )
-    time.sleep(3)
 
 
 if __name__ == "__main__":
@@ -195,37 +205,43 @@ if __name__ == "__main__":
         f1.close()
         f2.close()
         import lab01Tests
+        import lab01Funcs
 
         # clean out the current directory to prepare for testing
         cleanFiles()
 
+        nextCmd = 'y'
         # run the tests on all students
         for stud in allStudents:
-            status = -3
+            if nextCmd=='y':
+                status = -3
 
-            # create an output file for the current student
-            resultFilePath = testOutputDir + "/" + stud +"_output.txt"
-            resultFile = open(resultFilePath,'w')
-            resultFile.close()
-            
-            # If the student had files stored in their current dir,
-            # then run the tests.
-            # If copyfiles returned false, then the student gets a
-            # '-3' written to the scores file as a flag that we must  
-            # manually check their submission.
-            if copyFiles(stud):
+                # create an output file for the current student
+                resultFilePath = testOutputDir + "/" + stud +"_output.txt"
+                resultFile = open(resultFilePath,'w')
+                resultFile.close()
+                
+                # If the student had files stored in their current dir,
+                # then run the tests.
+                # If copyfiles returned false, then the student gets a
+                # '-3' written to the scores file as a flag that we must  
+                # manually check their submission.
+                if copyFiles(stud):
 
-                # Change the parameters to runTestsWithPrefix as needed
-                runTestsWithPrefix(labTestsNm,graderTests,"test_milesToKm", resultFilePath)
+                    # Change the parameters to runTestsWithPrefix as needed
+                    runTestsWithPrefix(labTestsNm,graderTests,"test_milesToKm", resultFilePath)
 
-                # count failures and store in status
-                status = countTestFailures(resultFilePath)
+                    # count failures and store in status
+                    status = countTestFailures(resultFilePath)
 
-                # print 'head' output data to see if student wrote his/her name 
-                printHeadText(stud)
+                    # print 'head' output data to see if student wrote his/her name 
+                    printHeadText(stud)
 
-            cleanFiles()
-            sc.write("%s, %d\n" % (stud, status))   
+                cleanFiles()
+                sc.write("%s, %d\n" % (stud, status)) 
+                nextCmd = input('Continue to next student? (y/n)')
+            else:
+                print("Goodbye, the student you left off at was %s\n" % stud)
 
         sc.close()
         print("*** Testing done ***")      
