@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
                 cleanFiles()
                 sc.write("%s, %d\n" % (stud, status)) 
-                nextCmd = input('Continue to next student? press "l" for yes, anything else for no')
+                nextCmd = input('Continue to next student? press "l" for yes, anything else for no: ')
             else:
                 print("Goodbye, the student you left off at was %s\n" % stud)
 
