@@ -196,6 +196,30 @@ def printHeadText(student):
     print("beginning of %s:\n" % labTestsNm)
     print( subprocess.check_output('head -n 5 ' + labTestsNm, shell=True).decode("utf-8") )
 
+def countAtSymbols():
+    """ 
+    Uses 'grep' to return the count of the number of occurences of '@@@' in the lab files
+    """
+    count = -1
+    
+    # I learned how to do this magical piping wizardry here:
+    #    http://stackoverflow.com/a/17129244
+    try: 
+        cat_process = subprocess.Popen(["cat",labFuncsNm,labTestsNm], stdout=subprocess.PIPE)
+        grep_process = subprocess.Popen(["grep","-c","@@@"], 
+                                        stdin=cat_process.stdout, 
+                                        stdout=subprocess.PIPE)
+        cat_process.stdout.close() # Allow cat_process to receive a SIGPIPE if grep_process exits.
+        output = grep_process.communicate()[0]
+        count = int(output.decode("utf-8"))
+    except Exception as inst:
+        # I don't know if the previous code can throw exceptions, 
+        # I'm just being extra cautious......
+        print(inst)
+        return -1
+
+    return count
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -209,7 +233,8 @@ if __name__ == "__main__":
         sc.write("passed the unit tests: 0\n")
         sc.write("failed some unit test: -1\n")
         sc.write("failed to add enough new tests: -2\n")
-        sc.write("failed to find at least one file: -3\n\n")
+        sc.write("failed to find at least one file: -3\n")
+        sc.write("failed to remove all '@@@' symbols: subtract -5 from current score\n\n")
 
         # make a directory for pyUnit output files (using os.path.exists and os.makedirs)
         if not path.exists(testOutputDir):
@@ -252,6 +277,12 @@ if __name__ == "__main__":
 
                     # print 'head' output data to see if student wrote his/her name 
                     printHeadText(stud)
+
+                    # check if there are any '@@@' left in the code
+                    # Update status so that we can detect multiple errors at once
+                    grep_count = countAtSymbols()
+                    if grep_count > 0:
+                        status -= 5
 
                 cleanFiles()
                 sc.write("%s, %d\n" % (stud, status)) 
