@@ -201,7 +201,7 @@ def countAtSymbols():
     Uses 'grep' to return the count of the number of occurences of '@@@' in the lab files
     """
     count = -1
-    
+
     # I learned how to do this magical piping wizardry here:
     #    http://stackoverflow.com/a/17129244
     try: 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
                     # Update status so that we can detect multiple errors at once
                     grep_count = countAtSymbols()
                     if grep_count > 0:
-                        status -= 5
+                        status -= 10
 
                 cleanFiles()
                 sc.write("%s, %d\n" % (stud, status)) 
