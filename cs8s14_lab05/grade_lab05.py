@@ -113,6 +113,7 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
         try:
             imp.reload(lab05Funcs)
             imp.reload(lab05Tests)
+            imp.reload(KyleTests05)
         except Exception as inst:
             print(inst)
             return -1
@@ -247,6 +248,7 @@ if __name__ == "__main__":
         f2.close()
         import lab05Funcs
         import lab05Tests
+        import KyleTests05
 
         # clean out the current directory to prepare for testing
         cleanFiles()

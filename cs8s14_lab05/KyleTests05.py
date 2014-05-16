@@ -3,7 +3,7 @@
 import unittest            
 from lab05Funcs import *   
 
-class KyleTests(unittest.TestCase): 
+class KyleTests05(unittest.TestCase): 
 
     # tests for smallestInt
 
@@ -41,9 +41,10 @@ class KyleTests(unittest.TestCase):
     def test_longestString_2(self):
        self.assertEqual(  longestString(42), False )
 
+    # test to make sure they are checking the *length* of each string, not just ASCII ordering
+    # in this case if they are only doing listOfStrings[i] > longest, then they would get 'wolf'
     def test_longestString_3(self):
-       self.assertEqual(  longestString(['University','wolf','bear','dog','1234567890']), 'University' )
-
+       self.assertEqual(  longestString(['aaaaaaaaaa','','university','wolf']), 'aaaaaaaaaa' )
 
 
     # tests for indexOfShortestString
@@ -54,8 +55,10 @@ class KyleTests(unittest.TestCase):
     def test_indexOfShortestString_2(self):
        self.assertEqual(  indexOfShortestString(80085), False )
 
+    # test to make sure they are checking the *length* of each string, not just ASCII ordering
+    # in this case if they are only doing listOfStrings[i] > indexOfShortest, then they would get 'a'
     def test_indexOfShortestString_4(self):
-       self.assertEqual(  indexOfShortestString(['the','king','red','north','wolf']), 0 )
+       self.assertEqual(  indexOfShortestString(['b','red','north','wolf','a']), 0 )
 
     # End of tests for grading lab05
 
