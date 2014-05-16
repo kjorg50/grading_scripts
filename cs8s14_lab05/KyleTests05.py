@@ -50,14 +50,14 @@ class KyleTests05(unittest.TestCase):
     # tests for indexOfShortestString
 
     def test_indexOfShortestString_1(self):
-       self.assertEqual(  indexOfShortestString([[123,12],[-1,-2,-3]]), False )
+       self.assertEqual(  indexOfShortestString([[123,12],[-1,-2,-3],[77]]), False )
 
     def test_indexOfShortestString_2(self):
        self.assertEqual(  indexOfShortestString(80085), False )
 
     # test to make sure they are checking the *length* of each string, not just ASCII ordering
     # in this case if they are only doing listOfStrings[i] > indexOfShortest, then they would get 'a'
-    def test_indexOfShortestString_4(self):
+    def test_indexOfShortestString_3(self):
        self.assertEqual(  indexOfShortestString(['b','red','north','wolf','a']), 0 )
 
     # End of tests for grading lab05
