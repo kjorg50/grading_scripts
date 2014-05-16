@@ -104,7 +104,7 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
     loader = unittest.TestLoader()
     loader.testMethodPrefix = prefix
 
-    print("*** run test params " + testFile1 + ", " + testFile2 + ", " + outfile)
+    #print("*** run test params " + testFile1 + ", " + testFile2 + ", " + outfile)
     # open the outfile as the destination of the output
     f = open(outfile, "w")
 
@@ -119,9 +119,9 @@ def runTestsWithPrefix(testFile1,testFile2,prefix,outfile):
 
     # add all the unit tests into the TestSuite object
     suite = loader.discover('.', pattern = testFile1) 
-    print("Cases %d" % (suite.countTestCases()))
+    #print("Cases %d" % (suite.countTestCases()))
     suite.addTest( loader.discover('.', pattern = testFile2) )
-    print("Cases %d" % (suite.countTestCases()))
+    #print("Cases %d" % (suite.countTestCases()))
 
     # pass the file as the stream location for output
     unittest.TextTestRunner(stream=f,verbosity=2).run(suite)
@@ -289,6 +289,7 @@ if __name__ == "__main__":
                 nextCmd = input('Continue to next student? press "l" for yes, anything else for no: ')
             else:
                 print("Goodbye, the student you left off at was %s\n" % stud)
+                break
 
         sc.close()
         print("*** Testing done ***")      
