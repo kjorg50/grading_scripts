@@ -235,7 +235,7 @@ if __name__ == "__main__":
         sc.write("failed some unit test: -1\n")
         sc.write("failed to add enough new tests: -2\n")
         sc.write("failed to find at least one file: -3\n")
-        sc.write("failed to remove all '@@@' symbols: subtract -5 from current score\n\n")
+        sc.write("failed to remove all '@@@' symbols: subtract -10 from current score\n\n")
 
         # make a directory for pyUnit output files (using os.path.exists and os.makedirs)
         if not path.exists(testOutputDir):
